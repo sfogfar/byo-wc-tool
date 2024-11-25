@@ -1,4 +1,4 @@
-(ns ccwc.core
+(ns wc.core
   (:gen-class)
   (:require [clojure.string :as str]))
 
