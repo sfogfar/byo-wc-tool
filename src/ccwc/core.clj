@@ -2,40 +2,78 @@
   (:gen-class)
   (:require [clojure.string :as str]))
 
-(defn valid-args?
+(defn invalid-args?
   [args]
-  (= (count args) 2))
+  (> (count args) 3))
 
 (defn valid-file?
   [path]
   (.exists (java.io.File. path)))
 
-(defn get-file-size
-  [path]
-  (.length (java.io.File. path)))
+(defn get-size
+  [text]
+  (alength (.getBytes text "UTF8")))
 
-(defn counter
-  [path expr]
-  (let [text (slurp path)
-        items (str/split text expr)]
+(defn split-and-count
+  [text split-by]
+  (let [split-expressions {:by-line #"\n"
+                           :by-word #"\s+"
+                           :by-char #""}
+        split-expression (get split-expressions split-by)
+        items (str/split text split-expression)]
     (count items)))
 
-(defn -main [& args]
-  (if (valid-args? args)
-    (let [op (first args)
-          path (second args)]
-      (try (valid-file? path)
-           (catch Exception e (str "Caught exception" e)))
-      (let [res (case op
-                  "-c" (get-file-size path)
-                  "-l" (counter path #"\n")
-                  "-w" (counter path #"\s+"))]
-        (str res path)))
-    (do
-      (println "Expected two args")
-      (println "Usage: -flag input-file-path")
-      (System/exit 1))))
+(defn default
+  ([text] (default text ""))
+  ([text file-path]
+   (let [file-size (get-size text)
+         line-count (split-and-count text :by-line)
+         word-count (split-and-count text :by-word)]
+     (println (str/join " " [file-size line-count word-count file-path])))))
 
-(-main "-c" "resources/test.txt")
-(-main "-l" "resources/test.txt")
-(-main "-w" "resources/test.txt")
+(defn with-option
+  ([text option] (with-option text option ""))
+  ([text option file-path]
+   (let [res (case option
+               "-c" (get-size text)
+               "-l" (split-and-count text :by-line)
+               "-w" (split-and-count text :by-word)
+               "-m" (split-and-count text :by-char))]
+     (println (str/join " " [res file-path])))))
+
+(defn -main
+  [& args]
+  (let [[arg1 arg2] args
+        args-count (count args)]
+    (try
+      (cond
+        (= 0 args-count)
+        (default (slurp *in*))
+
+        (and (= args-count 1) (str/starts-with? arg1 "-"))
+        (with-option (slurp *in*) arg1)
+
+        (and (= args-count 1) (not (str/starts-with? arg1 "-")))
+        (default (slurp arg1) arg1)
+
+        (and (= args-count 2) (str/starts-with? arg1 "-"))
+        (with-option (slurp arg2) arg1 arg2)
+
+        :else
+        (throw (Exception. "Invalid arguments")))
+      (catch Exception e
+        (println "Error:" (.getMessage e))
+        (System/exit 1)))))
+
+;; 0 -> read in and use default
+;; 1 -> if arg, read in and use arg
+;; 1 -> if path, read path and use default
+;; 2 -> use path and args
+
+(comment
+  (def test-file-path "resources/test.txt")
+  (-main "-c" test-file-path)
+  (-main "-l" test-file-path)
+  (-main "-w" test-file-path)
+  (-main "-m" test-file-path)
+  (-main test-file-path))
