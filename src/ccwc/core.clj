@@ -2,14 +2,6 @@
   (:gen-class)
   (:require [clojure.string :as str]))
 
-(defn invalid-args?
-  [args]
-  (> (count args) 3))
-
-(defn valid-file?
-  [path]
-  (.exists (java.io.File. path)))
-
 (defn get-size
   [text]
   (alength (.getBytes text "UTF8")))
@@ -64,11 +56,6 @@
       (catch Exception e
         (println "Error:" (.getMessage e))
         (System/exit 1)))))
-
-;; 0 -> read in and use default
-;; 1 -> if arg, read in and use arg
-;; 1 -> if path, read path and use default
-;; 2 -> use path and args
 
 (comment
   (def test-file-path "resources/test.txt")
