@@ -1,10 +1,12 @@
 # Build Your Own WC Tool
 
-https://codingchallenges.fyi/challenges/challenge-wc
-
-A Clojure implementation of the Unix `wc` (word count) utility.
+A Clojure implementation of the Unix [wc
+utility](https://en.wikipedia.org/wiki/Wc_(Unix)), as described in [Coding
+Challenges](https://codingchallenges.fyi/challenges/challenge-wc).
 
 ## Usage
+
+Run with the [Clojure CLI](https://clojure.org/reference/clojure_cli).
 
 | Feature | Flag | Example Command | Example Output |
 |---------|------|----------------|----------------|
